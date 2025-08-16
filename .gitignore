@@ -1,0 +1,6 @@
+# Local environment variables
+# See https://nextjs.org/docs/basic-features/environment-variables
+.env*.local
+
+# Node dependencies
+/node_modules
