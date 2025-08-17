@@ -3,18 +3,37 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { auth } from '@/lib/firebase';
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword, AuthErrorCodes } from 'firebase/auth';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isRegistering, setIsRegistering] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+
+  const getFriendlyErrorMessage = (errorCode: string): string => {
+    switch (errorCode) {
+      case AuthErrorCodes.EMAIL_EXISTS:
+        return '這個電子郵件已經被註冊了。';
+      case AuthErrorCodes.WRONG_PASSWORD:
+        return '密碼錯誤，請再試一次。';
+      case AuthErrorCodes.USER_DELETED:
+        return '找不到此用戶。';
+      case AuthErrorCodes.INVALID_EMAIL:
+        return '電子郵件格式不正確。';
+      case AuthErrorCodes.WEAK_PASSWORD:
+        return '密碼強度不足，請設定至少6個字元。';
+      default:
+        return '發生未知錯誤，請稍後再試。';
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setIsLoading(true);
     try {
       if (isRegistering) {
         await createUserWithEmailAndPassword(auth, email, password);
@@ -24,7 +43,9 @@ export default function LoginPage() {
       // 登入成功後導向到儀表板頁面
       router.push('/dashboard');
     } catch (err: any) {
-      setError(err.message);
+      setError(getFriendlyErrorMessage(err.code));
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -48,8 +69,8 @@ export default function LoginPage() {
           className="p-2 border rounded"
           required
         />
-        <button type="submit" className="p-2 bg-blue-500 text-white rounded hover:bg-blue-600">
-          {isRegistering ? '註冊' : '登入'}
+        <button type="submit" disabled={isLoading} className="p-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:bg-gray-400">
+          {isLoading ? '處理中...' : (isRegistering ? '註冊' : '登入')}
         </button>
         {error && <p className="text-red-500">{error}</p>}
         <p className="text-center text-sm text-gray-600 mt-4">
