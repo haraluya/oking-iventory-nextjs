@@ -14,20 +14,35 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
-  const getFriendlyErrorMessage = (errorCode: string): string => {
-    switch (errorCode) {
-      case AuthErrorCodes.EMAIL_EXISTS:
-        return '這個電子郵件已經被註冊了。';
-        case AuthErrorCodes.INVALID_CREDENTIAL:
-          return '電子郵件或密碼錯誤，請再試一次。';
-      case AuthErrorCodes.INVALID_EMAIL:
-        return '電子郵件格式不正確。';
-      case AuthErrorCodes.WEAK_PASSWORD:
-        return '密碼強度不足，請設定至少6個字元。';
-      default:
-        return '發生未知錯誤，請稍後再試。';
-    }
-  };
+const getFriendlyErrorMessage = (errorCode: string): string => {
+  switch (errorCode) {
+    case 'auth/email-already-in-use':
+    // AuthErrorCodes.EMAIL_EXISTS 也是 'auth/email-already-in-use' 的別名
+      return '這個電子郵件已經被註冊了。';
+
+    // 在新版的 Firebase 中，密碼錯誤、找不到用戶等情況
+    // 都會統一回傳 'auth/invalid-credential'
+    case 'auth/invalid-credential':
+      return '電子郵件或密碼錯誤，請再試一次。';
+
+    case 'auth/invalid-email':
+    // AuthErrorCodes.INVALID_EMAIL 的別名
+      return '電子郵件格式不正確。';
+
+    case 'auth/weak-password':
+    // AuthErrorCodes.WEAK_PASSWORD 的別名
+      return '密碼強度不足，請設定至少6個字元。';
+
+    case 'auth/user-not-found':
+        return '找不到此用戶，請確認電子郵件是否正確。';
+
+    case 'auth/wrong-password':
+        return '密碼錯誤，請再試一次。';
+
+    default:
+      return '發生未知錯誤，請稍後再試。';
+  }
+};
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
