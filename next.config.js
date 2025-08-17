@@ -1,11 +1,7 @@
-// next.config.js
-// 請在專案根目錄建立這個新檔案
-
-/** @type {import('next').NextConfig} */
 const nextConfig = {
-  // 這是 Next.js 14 的預設值，但我們明確地寫出來，
-  // 讓建置工具（如 Firebase）可以清楚地知道這是一個獨立的伺服器應用，
-  // 而不是一個靜態導出 (static export) 的網站。
+  // 明確指定輸出模式為 'standalone'。
+  // 這會產生一個標準的、包含伺服器依賴的輸出目錄，
+  // 讓 Firebase 的框架感知部署功能可以 100% 準確地識別它。
   output: 'standalone',
 };
 
