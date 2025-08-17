@@ -1,5 +1,5 @@
 # .github/workflows/firebase-hosting-merge.yml
-# 這是結合了所有修正的最終版本
+# 這是結合了所有偵錯經驗的最終版本
 
 name: Deploy to Firebase Hosting on merge
 'on':
@@ -12,8 +12,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: npm ci && npm run build
+        # 這個 env 區塊是讓 `next build` 成功讀取金鑰的關鍵
         env:
-          # 這個 env 區塊是讓 `next build` 成功讀取金鑰的關鍵
           NEXT_PUBLIC_FIREBASE_API_KEY: ${{ secrets.NEXT_PUBLIC_FIREBASE_API_KEY }}
           NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: ${{ secrets.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN }}
           NEXT_PUBLIC_FIREBASE_PROJECT_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_PROJECT_ID }}
@@ -26,3 +26,6 @@ jobs:
           firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}'
           channelId: live
           projectId: oking-inventory-nextjs
+        # 這個 env 區塊是讓部署工具啟用框架感知功能的關鍵
+        env:
+          FIREBASE_CLI_EXPERIMENTS: webframeworks
