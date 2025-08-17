@@ -22,8 +22,8 @@ jobs:
       - uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: '${{ secrets.GITHUB_TOKEN }}'
-          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}'
+          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_OKING_INVENTORY_NEXTJS }}'
           channelId: live
-          projectId: oking-inventory-nextjs # <-- 再次提醒：請確認這是您正確的專案 ID
+          projectId: oking-inventory-nextjs
         env:
           FIREBASE_CLI_EXPERIMENTS: webframeworks
