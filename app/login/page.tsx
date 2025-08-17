@@ -2,7 +2,8 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { auth } from '@/lib/firebase';
+import { auth } from '@/lib/firebase'; // Assuming auth is exported from here
+import { FirebaseError } from 'firebase/app';
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword, AuthErrorCodes } from 'firebase/auth';
 
 export default function LoginPage() {
@@ -17,10 +18,8 @@ export default function LoginPage() {
     switch (errorCode) {
       case AuthErrorCodes.EMAIL_EXISTS:
         return '這個電子郵件已經被註冊了。';
-      case AuthErrorCodes.WRONG_PASSWORD:
-        return '密碼錯誤，請再試一次。';
-      case AuthErrorCodes.USER_DELETED:
-        return '找不到此用戶。';
+        case AuthErrorCodes.INVALID_CREDENTIAL:
+          return '電子郵件或密碼錯誤，請再試一次。';
       case AuthErrorCodes.INVALID_EMAIL:
         return '電子郵件格式不正確。';
       case AuthErrorCodes.WEAK_PASSWORD:
@@ -34,16 +33,21 @@ export default function LoginPage() {
     e.preventDefault();
     setError(null);
     setIsLoading(true);
+
+    const authAction = isRegistering
+      ? createUserWithEmailAndPassword
+      : signInWithEmailAndPassword;
+
     try {
-      if (isRegistering) {
-        await createUserWithEmailAndPassword(auth, email, password);
-      } else {
-        await signInWithEmailAndPassword(auth, email, password);
-      }
+      await authAction(auth, email, password);
       // 登入成功後導向到儀表板頁面
       router.push('/dashboard');
-    } catch (err: any) {
-      setError(getFriendlyErrorMessage(err.code));
+    } catch (err) {
+      if (err instanceof FirebaseError) {
+        setError(getFriendlyErrorMessage(err.code));
+      } else {
+        setError('發生了一個預期外的錯誤，請再試一次。');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -52,27 +56,41 @@ export default function LoginPage() {
   return (
     <main className="flex min-h-screen flex-col items-center justify-center">
       <form onSubmit={handleSubmit} className="flex flex-col gap-4 p-8 border rounded-lg shadow-md w-full max-w-sm">
-        <h1 className="text-2xl font-bold mb-4 text-center">{isRegistering ? '註冊新帳號' : '登入 Oking Inventory'}</h1>
-        <input
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          placeholder="電子郵件"
-          className="p-2 border rounded"
-          required
-        />
-        <input
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          placeholder="密碼"
-          className="p-2 border rounded"
-          required
-        />
+        <h1 className="text-2xl font-bold mb-4 text-center">
+          {isRegistering ? '註冊新帳號' : '登入 Oking Inventory'}
+        </h1>
+        <div>
+          <label htmlFor="email" className="sr-only">電子郵件</label>
+          <input
+            id="email"
+            name="email"
+            type="email"
+            autoComplete="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="電子郵件"
+            className="p-2 border rounded w-full"
+            required
+          />
+        </div>
+        <div>
+          <label htmlFor="password" className="sr-only">密碼</label>
+          <input
+            id="password"
+            name="password"
+            type="password"
+            autoComplete={isRegistering ? "new-password" : "current-password"}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="密碼"
+            className="p-2 border rounded w-full"
+            required
+          />
+        </div>
         <button type="submit" disabled={isLoading} className="p-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:bg-gray-400">
           {isLoading ? '處理中...' : (isRegistering ? '註冊' : '登入')}
         </button>
-        {error && <p className="text-red-500">{error}</p>}
+        {error && <p className="text-red-500" role="alert">{error}</p>}
         <p className="text-center text-sm text-gray-600 mt-4">
           {isRegistering ? '已經有帳號了？' : '還沒有帳號？'}
           <button type="button" onClick={() => setIsRegistering(!isRegistering)} className="font-semibold text-blue-500 hover:underline ml-1">
