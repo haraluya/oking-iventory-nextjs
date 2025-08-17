@@ -15,7 +15,8 @@ jobs:
         run: |
           echo "--- Start of Debug ---"
           echo "Project ID from Secret: ${{ secrets.NEXT_PUBLIC_FIREBASE_PROJECT_ID }}"
-          echo "API Key starts with: ${{ secrets.NEXT_PUBLIC_FIREBASE_API_KEY && substring(secrets.NEXT_PUBLIC_FIREBASE_API_KEY, 0, 5) }}..."
+          API_KEY_SECRET="${{ secrets.NEXT_PUBLIC_FIREBASE_API_KEY }}"
+          echo "API Key starts with: $(echo "$API_KEY_SECRET" | cut -c1-5)..."
           echo "--- End of Debug ---"
       - run: npm ci && npm run build
       - uses: FirebaseExtended/action-hosting-deploy@v0
