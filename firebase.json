@@ -6,6 +6,8 @@
       "**/.*",
       "**/node_modules/**"
     ],
-    "frameworksBackend": {}
+    "frameworksBackend": {
+      "region": "us-central1"
+    }
   }
 }
