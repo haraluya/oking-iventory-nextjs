@@ -24,7 +24,7 @@ interface ModalContextType {
 
 const ModalContext = createContext<ModalContextType | null>(null);
 
-// 使用一個簡單的計數器來確保 ID 的唯一性
+// #使用一個簡單的計數器來確保 ID 的唯一性
 let messageIdCounter = 0;
 
 export const ModalProvider = ({ children }: { children: ReactNode }) => {
