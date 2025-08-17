@@ -24,12 +24,15 @@ interface ModalContextType {
 
 const ModalContext = createContext<ModalContextType | null>(null);
 
+// 使用一個簡單的計數器來確保 ID 的唯一性
+let messageIdCounter = 0;
+
 export const ModalProvider = ({ children }: { children: ReactNode }) => {
     const [modal, setModal] = useState<ConfirmationModal | null>(null);
     const [messages, setMessages] = useState<Message[]>([]);
 
     const showMessage = (message: string, type: 'success' | 'error' = 'success') => {
-        const id = Date.now();
+        const id = messageIdCounter++;
         setMessages(prev => [...prev, { id, message, type }]);
         setTimeout(() => setMessages(prev => prev.filter(m => m.id !== id)), 3000);
     };

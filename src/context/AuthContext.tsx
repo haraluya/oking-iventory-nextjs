@@ -23,12 +23,16 @@ interface AuthContextType {
 }
 
 // 建立 Context，並提供一個預設值
-const AuthContext = createContext<AuthContextType>({
-  user: null,
-  role: 'admin', // 預設值
-  setRole: () => {},
-  loading: true,
-});
+const AuthContext = createContext<AuthContextType | null>(null);
+
+// 建立一個自訂 Hook，方便在其他元件中使用 AuthContext
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+};
 
 // 建立 Provider 元件
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
@@ -44,16 +48,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setUser(currentUser);
         // 在這裡可以加入從 Firestore 獲取真實角色的邏輯
         // (目前沿用您舊專案的邏輯，允許手動切換)
-        setLoading(false);
       } else {
         // 如果沒有使用者，嘗試匿名登入
         try {
-          await signInAnonymously(auth);
+          // 只有在沒有現有使用者的情況下才進行匿名登入，避免重複登入
+          if (!auth.currentUser) {
+            await signInAnonymously(auth);
+          }
         } catch (error) {
           console.error("Firebase 匿名登入失敗:", error);
-          setLoading(false);
         }
       }
+      setLoading(false);
     });
 
     // 元件卸載時，取消監聽
@@ -62,12 +68,5 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const value = { user, role, setRole, loading };
 
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
-
-// 建立一個自訂 Hook，方便在其他元件中使用 AuthContext
-export const useAuth = () => useContext(AuthContext);
