@@ -1,7 +1,7 @@
 'use client';
 
-import { useAuth } from '@/contexts/AuthContext';
-import { useModal } from '@/contexts/ModalContext';
+import { useAuth } from '@/context/AuthContext';
+import { useModal } from '@/context/ModalContext';
 
 export default function Navbar() {
   const { currentUser, userProfile, logout } = useAuth();
