@@ -4,8 +4,8 @@ import { useAuth } from '@/context/AuthContext';
 import { useModal } from '@/context/ModalContext';
 
 export default function Navbar() {
-  const { currentUser, userProfile, logout } = useAuth();
-  const { openModal } = useModal();
+    const { currentUser, userProfile, logout } = useAuth();
+    const { openModal } = useModal();
 
   return (
     <nav className="bg-gray-800 p-4 text-white shadow-md">
