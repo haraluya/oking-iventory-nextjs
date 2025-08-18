@@ -2,7 +2,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import { Providers } from "./providers"; // 確保此元件包含 AuthProvider 和 ModalProvider
+import Providers from "@/components/Providers"; // 確保此元件包含 AuthProvider 和 ModalProvider
 import Navbar from "@/components/Navbar"; // 引入我們之前建立的 Navbar
 
 const inter = Inter({ subsets: ["latin"] });

@@ -22,25 +22,3 @@ export const addProduct = async (productData: Omit<Product, "createdAt" | "updat
   }
 };
 
-/**
- * 在 Firestore 中為新用戶建立個人資料文件
- * @param user - 從 Firebase Authentication 取得的 User 物件
- */
-export const createUserProfile = async (user: User) => {
-  if (!user) return;
-
-  const userRef = doc(db, "users", user.uid);
-  const snapshot = await getDoc(userRef);
-
-  if (!snapshot.exists()) {
-    const { email, displayName } = user;
-    await setDoc(userRef, {
-      email,
-      displayName: displayName || email?.split('@')[0] || 'New User',
-      role: 'sales', // 新用戶預設角色
-      isActive: true,
-      lastLoginAt: serverTimestamp(),
-      createdAt: serverTimestamp(),
-    } as Omit<UserProfile, 'photoURL'>);
-  }
-};
