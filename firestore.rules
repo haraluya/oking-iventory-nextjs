@@ -1,0 +1,60 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // 函數：檢查使用者是否登入
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    // 函數：取得使用者的角色
+    function getUserRole() {
+      // 增加 isSignedIn() 和 exists() 檢查，讓規則更穩健
+      return isSignedIn() && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+        ? get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role
+        : '';
+    }
+
+    // 函數：檢查是否為 Admin
+    function isAdmin() {
+      return isSignedIn() && getUserRole() == 'admin';
+    }
+
+    // 使用者只能讀取和更新自己的資料
+    match /users/{userId} {
+      allow read, update: if isSignedIn() && request.auth.uid == userId;
+      allow create: if isSignedIn(); // 允許新用戶創建自己的資料
+    }
+
+    // --- 商品、客戶、供應商、庫存的權限 ---
+    // 登入後才能讀取，只有 Admin 和倉管能修改
+    match /products/{docId} {
+      allow read: if isSignedIn();
+      allow write: if getUserRole() in ['admin', 'warehouse'];
+    }
+    match /customers/{docId} {
+      allow read: if isSignedIn();
+      allow write: if getUserRole() in ['admin', 'warehouse'];
+    }
+    match /suppliers/{docId} {
+      allow read: if isSignedIn();
+      allow write: if getUserRole() in ['admin', 'warehouse'];
+    }
+    match /inventory/{docId} {
+      allow read: if isSignedIn();
+      allow write: if getUserRole() in ['admin', 'warehouse'];
+    }
+
+    // --- 訂單相關的權限 ---
+    // 登入後才能讀取，只有 Admin, 倉管, 業務能建立/修改
+    match /salesOrders/{orderId} {
+      allow read: if isSignedIn();
+      allow write: if getUserRole() in ['admin', 'warehouse', 'sales'];
+    }
+    match /purchaseOrders/{orderId} {
+      allow read: if isSignedIn();
+      allow write: if getUserRole() in ['admin', 'warehouse', 'sales'];
+    }
+  }
+}
