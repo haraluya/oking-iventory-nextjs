@@ -1,72 +1,68 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { auth } from '@/lib/firebase'; // Assuming auth is exported from here
-import { FirebaseError } from 'firebase/app';
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword, AuthErrorCodes } from 'firebase/auth';
+import { useAuth } from '@/contexts/AuthContext'; // 1. 引入 useAuth hook
 
 export default function LoginPage() {
+  // 2. 從 Context 取得驗證狀態和方法
+  const { currentUser, login, register } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isRegistering, setIsRegistering] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+  
+  // 如果使用者已經登入，就自動導向到儀表板
+  useEffect(() => {
+    if (currentUser) {
+      router.push('/dashboard');
+    }
+  }, [currentUser, router]);
 
-const getFriendlyErrorMessage = (errorCode: string): string => {
-  switch (errorCode) {
-    case 'auth/email-already-in-use':
-    // AuthErrorCodes.EMAIL_EXISTS 也是 'auth/email-already-in-use' 的別名
-      return '這個電子郵件已經被註冊了。';
-
-    // 在新版的 Firebase 中，密碼錯誤、找不到用戶等情況
-    // 都會統一回傳 'auth/invalid-credential'
-    case 'auth/invalid-credential':
-      return '電子郵件或密碼錯誤，請再試一次。';
-
-    case 'auth/invalid-email':
-    // AuthErrorCodes.INVALID_EMAIL 的別名
-      return '電子郵件格式不正確。';
-
-    case 'auth/weak-password':
-    // AuthErrorCodes.WEAK_PASSWORD 的別名
-      return '密碼強度不足，請設定至少6個字元。';
-
-    case 'auth/user-not-found':
-        return '找不到此用戶，請確認電子郵件是否正確。';
-
-    case 'auth/wrong-password':
-        return '密碼錯誤，請再試一次。';
-
-    default:
-      return '發生未知錯誤，請稍後再試。';
-  }
-};
+  // 3. 簡化錯誤處理函式
+  const getFriendlyErrorMessage = (err: any): string => {
+    // 這段邏輯與 AuthModal 中的相似，未來可以考慮抽成共用函式
+    const errorCode = err.code || '';
+    switch (errorCode) {
+      case 'auth/user-not-found':
+      case 'auth/wrong-password':
+      case 'auth/invalid-credential':
+        return '電子郵件或密碼錯誤。';
+      case 'auth/email-already-in-use':
+        return '此電子郵件已被註冊。';
+      case 'auth/weak-password':
+        return '密碼強度不足，請設定至少6個字元。';
+      default:
+        return '發生未知錯誤，請稍後再試。';
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     setIsLoading(true);
 
-    const authAction = isRegistering
-      ? createUserWithEmailAndPassword
-      : signInWithEmailAndPassword;
-
     try {
-      await authAction(auth, email, password);
-      // 登入成功後導向到儀表板頁面
-      router.push('/dashboard');
-    } catch (err) {
-      if (err instanceof FirebaseError) {
-        setError(getFriendlyErrorMessage(err.code));
+      // 4. 直接呼叫 context 中的方法
+      if (isRegistering) {
+        await register(email, password);
       } else {
-        setError('發生了一個預期外的錯誤，請再試一次。');
+        await login(email, password);
       }
+      // 成功後的導向交給 useEffect 處理
+    } catch (err) {
+      setError(getFriendlyErrorMessage(err));
     } finally {
       setIsLoading(false);
     }
   };
+
+  // 如果使用者已登入，顯示載入中，等待 useEffect 導向
+  if (currentUser) {
+    return <div className="flex min-h-screen flex-col items-center justify-center">驗證身分中...</div>;
+  }
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center">
