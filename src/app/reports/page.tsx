@@ -18,6 +18,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { toast } from 'sonner';
+import { Timestamp } from 'firebase/firestore'; // --- 新增引入 Timestamp ---
 
 import { getFinancialSummary } from '@/lib/reportsApi';
 import type { SalesOrder } from '@/types/firestore';
@@ -157,7 +158,13 @@ export default function FinancialReportPage() {
                             <TableBody>
                                 {summary.orders.length > 0 ? summary.orders.map(order => (
                                     <TableRow key={order.id}>
-                                        <TableCell>{order.shippedAt ? format(order.shippedAt.toDate(), 'yyyy/MM/dd') : 'N/A'}</TableCell>
+                                        {/* --- 修正開始 --- */}
+                                        <TableCell>
+                                            {order.shippedAt && order.shippedAt instanceof Timestamp 
+                                                ? format(order.shippedAt.toDate(), 'yyyy/MM/dd') 
+                                                : 'N/A'}
+                                        </TableCell>
+                                        {/* --- 修正結束 --- */}
                                         <TableCell>{order.orderNumber}</TableCell>
                                         <TableCell>{order.customerInfo.name}</TableCell>
                                         <TableCell className="text-right">{formatCurrency(order.totalAmount)}</TableCell>
