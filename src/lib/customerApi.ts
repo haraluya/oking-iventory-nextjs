@@ -7,9 +7,12 @@ const customersCollectionRef = collection(db, "customers");
 
 /**
  * 獲取所有客戶列表
- * @returns Promise<Customer[]>
+ * @returns Promise<(Customer & { id: string })[]>
  */
-export const getAllCustomers = async (): Promise<Customer[]> => {
+// --- 修正開始 ---
+// 將回傳型別從 Promise<Customer[]> 修改為 Promise<(Customer & { id: string })[]>
+export const getAllCustomers = async (): Promise<(Customer & { id: string })[]> => {
+// --- 修正結束 ---
     try {
         const querySnapshot = await getDocs(customersCollectionRef);
         return querySnapshot.docs.map(doc => ({
