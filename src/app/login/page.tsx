@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@/contexts/AuthContext'; // 1. 引入 useAuth hook
+import { useAuth } from '@/context/AuthContext'; // 1. 引入 useAuth hook
 
 export default function LoginPage() {
   // 2. 從 Context 取得驗證狀態和方法
