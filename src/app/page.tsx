@@ -1,31 +1,31 @@
+// src/app/page.tsx
 'use client';
 
 import { useAuth } from '@/context/AuthContext';
+import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
 
-export default function Home() {
-  const { currentUser, userProfile, loading } = useAuth();
+export default function HomePage() {
+  const { currentUser, loading } = useAuth();
+  const router = useRouter();
 
-  if (loading) {
-    return <div className="text-center mt-10">載入中...</div>;
+  useEffect(() => {
+    // 當 AuthContext 載入完成後，且 currentUser 存在時，跳轉到儀表板
+    if (!loading && currentUser) {
+      router.push('/dashboard');
+    }
+  }, [currentUser, loading, router]);
+
+  // 如果正在載入或已登入，顯示載入中或空白，避免閃爍
+  if (loading || currentUser) {
+    return <div>Loading...</div>; // 或者一個好看的載入動畫
   }
 
+  // 只在使用者確定未登入時，顯示歡迎訊息
   return (
-    <div>
-      <h1 className="text-3xl font-bold mb-4">系統首頁</h1>
-      {currentUser ? (
-        <div>
-          <p className="text-lg">您已登入！歡迎回來, {userProfile?.displayName || currentUser.email}!</p>
-          {userProfile && (
-            <div className="mt-4 p-4 border rounded bg-gray-50">
-              <h2 className="text-xl font-semibold">Firestore 使用者資料</h2>
-              <pre className="text-sm bg-gray-100 p-2 rounded">{JSON.stringify(userProfile, null, 2)}</pre>
-            </div>
-          )}
-        </div>
-      ) : (
-        <p className="text-lg">您尚未登入，請點擊右上角的「登入 / 註冊」按鈕。</p>
-      )}
+    <div className="flex flex-col items-center justify-center min-h-screen">
+      <h1 className="text-4xl font-bold mb-4">歡迎來到 Oking 進銷存系統</h1>
+      <p className="text-lg text-muted-foreground">請點擊右上角的按鈕登入以繼續。</p>
     </div>
   );
 }
-

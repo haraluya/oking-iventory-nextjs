@@ -39,22 +39,25 @@ export interface Product {
 }
 
 /**
- * 2. `inventory` (庫存管理集合)
+ * 2. `inventory` (庫存管理集合) - 註：此集合可能已由 inventory_history 取代
  */
 export interface Inventory {
   currentStock: number;
   averageCost: number;
 }
 
+/**
+ * `inventory_history` (全域庫存歷史紀錄集合)
+ */
 export interface InventoryHistory {
+  productId: string; 
+  productSku: string;
+  productName: string;
   type: "purchase-in" | "sales-out" | "adjustment" | "customer-return" | "supplier-return";
   change: number;
   stockAfter: number;
-  costBefore?: number;
-  costAfter?: number;
-  relatedDocId: string;
-  userId: string;
   note?: string;
+  userId: string;
   timestamp: Timestamp | FieldValue;
 }
 
@@ -113,6 +116,7 @@ export interface SalesOrder {
   customerId: string;
   customerInfo: { name: string; level: string; taxId?: string; };
   shippingAddress: Address;
+  items: SalesOrderItem[];
   status: "pending-approval" | "pending-shipment" | "completed" | "cancelled" | "partially-shipped";
   paymentStatus: "unpaid" | "partially-paid" | "paid";
   totalAmount: number;
@@ -129,6 +133,34 @@ export interface SalesOrder {
   approvedAt?: Timestamp | FieldValue;
   shippedAt?: Timestamp | FieldValue;
 }
+
+/**
+ * 6. `purchaseOrders` (採購訂單集合) - 新增
+ */
+export interface PurchaseOrderItem {
+  sku: string;
+  name: string;
+  spec: string;
+  quantity: number;
+  unitCost: number; // 進貨成本
+  subtotal: number;
+}
+
+export interface PurchaseOrder {
+  orderNumber: string;
+  supplierId: string;
+  supplierInfo: { name: string; taxId?: string; };
+  items: PurchaseOrderItem[];
+  status: "pending-receipt" | "completed" | "cancelled";
+  totalAmount: number;
+  internalNote?: string;
+  createdBy: string; // userId
+  receivedBy?: string; // userId
+  createdAt: Timestamp | FieldValue;
+  updatedAt: Timestamp | FieldValue;
+  receivedAt?: Timestamp | FieldValue;
+}
+
 
 /**
  * 7. `users` (使用者與權限集合)

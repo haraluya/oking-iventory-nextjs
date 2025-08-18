@@ -1,11 +1,17 @@
+// src/components/modals/AuthModal.tsx
 'use client';
 
-import { useState, FormEvent } from 'react';
+import { useState, FormEvent, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useModal } from '@/context/ModalContext';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { toast } from "sonner"
 
 export default function AuthModal() {
-  const { modal, closeModal } = useModal();
+  const { isAuthModalOpen, closeAuthModal } = useModal();
   const { login, register } = useAuth();
   const [isLoginView, setIsLoginView] = useState(true);
   const [email, setEmail] = useState('');
@@ -13,9 +19,21 @@ export default function AuthModal() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  if (modal !== 'auth') {
-    return null;
-  }
+  // --- 關鍵偵錯程式碼 ---
+  // 這個 console.log 會在每次元件重新渲染時執行。
+  // 當我們點擊按鈕時，我們預期會看到它的值從 false 變成 true。
+  console.log(`--- AuthModal 重新渲染，isAuthModalOpen 的值是: ${isAuthModalOpen} ---`);
+
+
+  // 當 Modal 開關或登入/註冊模式切換時，清空表單狀態
+  useEffect(() => {
+    if (isAuthModalOpen) {
+        setError('');
+        setEmail('');
+        setPassword('');
+    }
+  }, [isAuthModalOpen, isLoginView]);
+
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -24,53 +42,71 @@ export default function AuthModal() {
     try {
       if (isLoginView) {
         await login(email, password);
+        toast.success("登入成功！");
       } else {
         await register(email, password);
+        toast.success("註冊成功！歡迎加入！");
       }
-      closeModal();
+      closeAuthModal();
     } catch (err: any) {
-      // 根據 Firebase 的錯誤碼顯示更友善的訊息
-      switch (err.code) {
-        case 'auth/user-not-found':
-        case 'auth/wrong-password':
-          setError('電子郵件或密碼錯誤。');
-          break;
-        case 'auth/email-already-in-use':
-          setError('此電子郵件已被註冊。');
-          break;
-        default:
-          setError('發生未知錯誤，請稍後再試。');
-      }
+      const friendlyError = getFriendlyErrorMessage(err.code);
+      setError(friendlyError);
+      toast.error(friendlyError);
     } finally {
       setLoading(false);
     }
   };
 
+  const getFriendlyErrorMessage = (code: string) => {
+    switch (code) {
+      case 'auth/user-not-found':
+      case 'auth/wrong-password':
+        return '電子郵件或密碼錯誤。';
+      case 'auth/email-already-in-use':
+        return '此電子郵件已被註冊。';
+      default:
+        return '發生未知錯誤，請稍後再試。';
+    }
+  }
+  
+  // 為了防止在伺服器端渲染時出錯，我們只在 isAuthModalOpen 為 true 時才渲染 Dialog
+  if (!isAuthModalOpen) {
+    return null;
+  }
+
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center" onClick={closeModal}>
-      <div className="bg-white p-8 rounded-lg shadow-xl w-full max-w-md relative" onClick={(e) => e.stopPropagation()}>
-        <button onClick={closeModal} className="absolute top-2 right-2 text-gray-500 hover:text-gray-800 text-2xl">&times;</button>
-        <h2 className="text-2xl font-bold mb-6 text-center">{isLoginView ? '登入系統' : '建立新帳號'}</h2>
+    <Dialog open={isAuthModalOpen} onOpenChange={closeAuthModal}>
+      <DialogContent className="sm:max-w-[425px]">
+        <DialogHeader>
+          <DialogTitle>{isLoginView ? '登入系統' : '建立新帳號'}</DialogTitle>
+          <DialogDescription>
+            {isLoginView ? '輸入您的憑證以繼續。' : '立即建立帳號以開始使用。'}
+          </DialogDescription>
+        </DialogHeader>
         <form onSubmit={handleSubmit}>
-          <div className="mb-4">
-            <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="email">電子郵件</label>
-            <input className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700" id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="email" className="text-right">電子郵件</Label>
+              <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required className="col-span-3" />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="password" className="text-right">密碼</Label>
+              <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required className="col-span-3" />
+            </div>
+            {error && <p className="col-span-4 text-red-500 text-sm text-center">{error}</p>}
           </div>
-          <div className="mb-6">
-            <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="password">密碼</label>
-            <input className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700" id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
-          </div>
-          {error && <p className="text-red-500 text-xs italic mb-4">{error}</p>}
-          <div className="flex items-center justify-between">
-            <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline disabled:bg-blue-300" type="submit" disabled={loading}>
-              {loading ? '處理中...' : (isLoginView ? '登入' : '註冊')}
-            </button>
-            <button type="button" onClick={() => setIsLoginView(!isLoginView)} className="inline-block align-baseline font-bold text-sm text-blue-500 hover:text-blue-800">
-              {isLoginView ? '需要帳號嗎？' : '已經有帳號了？'}
-            </button>
-          </div>
+          <DialogFooter>
+            <div className="w-full flex justify-between items-center">
+                <Button type="button" variant="link" onClick={() => setIsLoginView(!isLoginView)}>
+                    {isLoginView ? '需要帳號嗎？' : '已經有帳號了？'}
+                </Button>
+                <Button type="submit" disabled={loading}>
+                    {loading ? '處理中...' : (isLoginView ? '登入' : '註冊')}
+                </Button>
+            </div>
+          </DialogFooter>
         </form>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }

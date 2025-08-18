@@ -1,70 +1,84 @@
-'use client';
+// src/app/dashboard/page.tsx
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { DollarSign, Package, ShoppingCart, AlertTriangle } from 'lucide-react';
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { auth } from '@/lib/firebase';
-import { onAuthStateChanged, signOut, User } from 'firebase/auth';
-
-export default function DashboardPage() {
-  const router = useRouter();
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      if (currentUser) {
-        setUser(currentUser);
-        setLoading(false);
-      } else {
-        // 沒有使用者登入，導向回登入頁
-        router.push('/login');
-      }
-    });
-
-    // 清理監聽
-    return () => unsubscribe();
-  }, [router]);
-
-  const handleSignOut = async () => {
-    try {
-      await signOut(auth);
-      // onAuthStateChanged 監聽器會自動處理導向
-    } catch (error) {
-      console.error('登出失敗:', error);
-    }
-  };
-
-  if (loading) {
-    return (
-      <main className="flex min-h-screen flex-col items-center justify-center">
-        <p className="text-lg">儀表板載入中...</p>
-      </main>
-    );
-  }
-
+export default function Dashboard() {
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white shadow-sm">
-        <nav className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex h-16 items-center justify-between">
-            <div className="flex items-center">
-              <span className="font-bold text-xl">Oking Inventory</span>
-            </div>
-            <div className="flex items-center gap-4">
-              <p className="text-sm text-gray-600">你好, {user?.email}</p>
-              <button onClick={handleSignOut} className="rounded-md bg-red-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">
-                登出
-              </button>
-            </div>
-          </div>
-        </nav>
-      </header>
-      <main className="container mx-auto p-4 sm:p-6 lg:p-8">
-        <h1 className="text-3xl font-bold text-gray-800 mb-6">儀表板</h1>
-        <div className="p-6 bg-white rounded-lg shadow">
-          <p>這裡是您的庫存總覽。接下來您可以在這裡新增、查看、管理您的庫存商品。</p>
-        </div>
-      </main>
+    <div>
+      <h1 className="text-3xl font-bold mb-6">智慧儀表板</h1>
+
+      {/* 核心業績指標 */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-6">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">總銷售額</CardTitle>
+            <DollarSign className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">$45,231.89</div>
+            <p className="text-xs text-muted-foreground">+20.1% from last month</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">已完成訂單</CardTitle>
+            <ShoppingCart className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">+2350</div>
+            <p className="text-xs text-muted-foreground">+180.1% from last month</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* 全域即時狀態 */}
+      <h2 className="text-2xl font-semibold mb-4">全域即時狀態</h2>
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+         <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">總庫存成本</CardTitle>
+            <DollarSign className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">$120,842.00</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">商品總品項</CardTitle>
+            <Package className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">352</div>
+          </CardContent>
+        </Card>
+         <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">待出貨訂單</CardTitle>
+            <ShoppingCart className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">12</div>
+          </CardContent>
+        </Card>
+         <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">低庫存警示</CardTitle>
+            <AlertTriangle className="h-4 w-4 text-red-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">8</div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* 後續可以加入圖表等更多元件 */}
     </div>
   );
 }
