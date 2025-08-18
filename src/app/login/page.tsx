@@ -102,12 +102,11 @@ export default function LoginPage() {
           {isLoading ? '處理中...' : (isRegistering ? '註冊' : '登入')}
         </button>
         {error && <p className="text-red-500" role="alert">{error}</p>}
-        <p className="text-center text-sm text-gray-600 mt-4">
-          {isRegistering ? '已經有帳號了？' : '還沒有帳號？'}
-          <button type="button" onClick={() => setIsRegistering(!isRegistering)} className="font-semibold text-blue-500 hover:underline ml-1">
-            {isRegistering ? '前往登入' : '立即註冊'}
+        <div className="text-center mt-4">
+          <button type="button" onClick={() => setIsRegistering(!isRegistering)} className="text-sm font-semibold text-blue-500 hover:underline">
+            {isRegistering ? '現有帳號登入' : '註冊新帳號'}
           </button>
-        </p>
+        </div>
       </form>
     </main>
   );

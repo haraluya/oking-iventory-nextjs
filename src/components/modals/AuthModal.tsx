@@ -97,8 +97,8 @@ export default function AuthModal() {
           </div>
           <DialogFooter>
             <div className="w-full flex justify-between items-center">
-                <Button type="button" variant="link" onClick={() => setIsLoginView(!isLoginView)}>
-                    {isLoginView ? '需要帳號嗎？' : '已經有帳號了？'}
+                <Button type="button" variant="link" className="p-0 h-auto" onClick={() => setIsLoginView(!isLoginView)}>
+                    {isLoginView ? '註冊新帳號' : '現有帳號登入'}
                 </Button>
                 <Button type="submit" disabled={loading}>
                     {loading ? '處理中...' : (isLoginView ? '登入' : '註冊')}
